@@ -7,7 +7,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Le site + le schéma de la base (hors du dossier web)
-COPY app/ /var/www/html/
+COPY *.php style.css /var/www/html/
 COPY init.sql /opt/ecole/init.sql
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
