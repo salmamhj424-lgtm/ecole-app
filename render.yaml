@@ -1,0 +1,29 @@
+databases:
+  - name: ecole-db
+    plan: free
+    databaseName: ecole
+    user: ecole
+    ipAllowList: []        # base accessible uniquement par le site (réseau interne)
+
+services:
+  - type: web
+    name: ecole
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /login.php
+    envVars:
+      - key: DB_HOST
+        fromDatabase: { name: ecole-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: ecole-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: ecole-db, property: database }
+      - key: DB_USER
+        fromDatabase: { name: ecole-db, property: user }
+      - key: DB_PASS
+        fromDatabase: { name: ecole-db, property: password }
+      - key: ADMIN_PASSWORD   # mot de passe du compte admin (à saisir à la création)
+        sync: false
+      - key: DEMO_PASSWORD    # mot de passe des comptes de démo prof/parent/élève/comptable
+        sync: false
