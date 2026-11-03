@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
+require __DIR__ . '/lib_ui.php';
 
 if (current_user()) {
     header('Location: dashboard.php');
@@ -76,6 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <div class="login-wrap">
+  <div class="login-art"><?= illustration_ecole() ?></div>
+  <div class="login-form">
   <form class="card" method="post" autocomplete="on">
     <h1>🏫 Gestion d'école</h1>
     <p class="sub">Connectez-vous à votre espace</p>
@@ -92,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <button type="submit">Se connecter</button>
   </form>
+  </div>
 </div>
 </body>
 </html>

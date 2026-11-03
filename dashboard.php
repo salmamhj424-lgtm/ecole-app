@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
+require __DIR__ . '/lib_ui.php';
 $u = require_login();
 if ($u['role'] === 'superadmin') { redirect('ecoles.php'); }
 
@@ -41,6 +42,13 @@ $modules = [
     ],
 ];
 
+$icones = [
+    'Élèves' => '🧒', 'Classes' => '🏫', 'Matières' => '📚', 'Enseignants' => '👩‍🏫', 'Parents' => '👨‍👩‍👧',
+    'Notes' => '✏️', 'Bulletins' => '📄', 'Paiements' => '💰', 'Messagerie' => '💌',
+    'Mes classes' => '🏫', 'Devoirs' => '📝', 'Mes enfants' => '🧒', 'Notes & bulletins' => '📄',
+    'Emploi du temps' => '🗓️', 'Impayés' => '⏰', 'Inscriptions' => '🗂️',
+];
+
 // Quelques chiffres pour l'admin
 $stats = [];
 if ($u['role'] === 'admin') {
@@ -72,7 +80,13 @@ if ($u['role'] === 'admin') {
 </header>
 
 <main>
-  <h2>Bonjour <?= h($u['prenom'] ?: $u['nom']) ?> 👋</h2>
+  <section class="hero">
+    <div>
+      <h2>Bonjour <?= h($u['prenom'] ?: $u['nom']) ?> 👋</h2>
+      <p><?= h(ROLE_LABELS[$u['role']] ?? '') ?> · année scolaire <?= h(ANNEE) ?></p>
+    </div>
+    <?= illustration_bandeau() ?>
+  </section>
 
   <?php if ($stats): ?>
     <div class="stats">
@@ -87,6 +101,7 @@ if ($u['role'] === 'admin') {
       <?php $titre = $m[0]; $desc = $m[1]; $url = $m[2] ?? null; ?>
       <div class="tuile <?= $url ? 'lien' : '' ?>">
         <?php if ($url): ?><a href="<?= h($url) ?>"><?php endif; ?>
+        <div class="ico"><?= $icones[$titre] ?? '⭐' ?></div>
         <h3><?= h($titre) ?></h3>
         <p><?= h($desc) ?></p>
         <?php if (!$url): ?><span class="bientot">Bientôt</span><?php endif; ?>
