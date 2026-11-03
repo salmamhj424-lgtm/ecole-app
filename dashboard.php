@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/config.php';
 $u = require_login();
+if ($u['role'] === 'superadmin') { redirect('ecoles.php'); }
 
 // Modules visibles selon le rôle (les liens seront activés aux étapes suivantes)
 $modules = [
@@ -62,7 +63,7 @@ if ($u['role'] === 'admin') {
 </head>
 <body>
 <header class="top">
-  <div>🏫 <strong>Gestion d'école</strong></div>
+  <div>🏫 <strong><?= h($u['ecole'] ?? "Gestion d'école") ?></strong></div>
   <div>
     <?= h(trim($u['prenom'] . ' ' . $u['nom'])) ?>
     <span class="role"><?= h(ROLE_LABELS[$u['role']] ?? $u['role']) ?></span>

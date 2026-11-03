@@ -12,31 +12,57 @@ for ($i = 1; $i <= 30; $i++) {
 }
 if (!$pdo) { fwrite(STDERR, "Base injoignable.\n"); exit(1); }
 
-// 2) créer les tables si besoin
-$existe = $pdo->query("SELECT to_regclass('public.users')")->fetchColumn();
-if (!$existe) {
-    $sql = file_get_contents(getenv('INIT_SQL') ?: '/opt/ecole/init.sql');
-    $pdo->exec($sql);
-    echo "✔ Tables créées\n";
-}
-
-// 3) comptes + données de démonstration (uniquement si aucun utilisateur)
-if ((int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn() > 0) { echo "Base déjà initialisée.\n"; exit(0); }
-
+require __DIR__ . '/lib_ecoles.php';
 $adminMdp = getenv('ADMIN_PASSWORD') ?: '';
 $demoMdp  = getenv('DEMO_PASSWORD') ?: '';
+
+// 2) tables communes : écoles + super administrateur
+ensure_multi_schema($pdo);
+$nbEcoles = (int)$pdo->query('SELECT COUNT(*) FROM ecoles')->fetchColumn();
+
+// 3a) base d'avant le multi-écoles : les tables sont dans "public" -> on les range dans l'école n°1
+$ancienne = $pdo->query("SELECT to_regclass('public.users')")->fetchColumn();
+if ($ancienne && $nbEcoles === 0) {
+    $pdo->beginTransaction();
+    $st = $pdo->prepare('INSERT INTO ecoles (nom, schema_name) VALUES (?, ?) RETURNING id');
+    $st->execute(['École démo', 'tmp_' . bin2hex(random_bytes(6))]);
+    $id = (int)$st->fetchColumn();
+    $schema = 'ecole_' . $id;
+    $pdo->prepare('UPDATE ecoles SET schema_name = ? WHERE id = ?')->execute([$schema, $id]);
+    $pdo->exec("CREATE SCHEMA $schema");
+    foreach (['users', 'classes', 'matieres', 'eleves', 'evaluations', 'notes', 'paiements', 'messages'] as $t) {
+        $pdo->exec("ALTER TABLE public.$t SET SCHEMA $schema");
+    }
+    $pdo->commit();
+    $nbEcoles = 1;
+    echo "✔ Anciennes données rangées dans l'école « École démo » ($schema)\n";
+}
+
+// 3b) super administrateur (créé une fois, mot de passe = ADMIN_PASSWORD)
+if ((int)$pdo->query('SELECT COUNT(*) FROM superadmins')->fetchColumn() === 0) {
+    if (strlen($adminMdp) < 10) {
+        fwrite(STDERR, "ADMIN_PASSWORD (10 caractères minimum) est obligatoire.\n");
+        exit(1);
+    }
+    $pdo->prepare('INSERT INTO superadmins (nom, prenom, email, mot_de_passe_hash) VALUES (?,?,?,?)')
+        ->execute(['Super', 'Admin', getenv('SUPERADMIN_EMAIL') ?: 'superadmin@ecole.tn', password_hash($adminMdp, PASSWORD_BCRYPT)]);
+    echo "✔ Super administrateur créé\n";
+}
+
+// 3c) première installation : une école de démonstration avec ses comptes et ses données
+if ($nbEcoles > 0) { echo "Base déjà initialisée.\n"; exit(0); }
 if (strlen($adminMdp) < 10 || strlen($demoMdp) < 10) {
     fwrite(STDERR, "ADMIN_PASSWORD et DEMO_PASSWORD (10 caractères minimum) sont obligatoires.\n");
     exit(1);
 }
-
+[$ecoleId, $schema] = create_school($pdo, 'École démo', 'Direction', 'Admin', 'admin@ecole.tn', $adminMdp);
+use_schema($pdo, $schema);
 $pdo->beginTransaction();
 $u = $pdo->prepare('INSERT INTO users (nom, prenom, email, mot_de_passe_hash, role) VALUES (?,?,?,?,?) RETURNING id');
 $mk = function ($nom, $prenom, $email, $mdp, $role) use ($u) {
     $u->execute([$nom, $prenom, $email, password_hash($mdp, PASSWORD_BCRYPT), $role]);
     return (int)$u->fetchColumn();
 };
-$admin = $mk('Direction', 'Admin',  'admin@ecole.tn',     $adminMdp, 'admin');
 $prof  = $mk('Ben Salah', 'Amel',   'prof@ecole.tn',      $demoMdp,  'enseignant');
 $par   = $mk('Trabelsi',  'Sami',   'parent@ecole.tn',    $demoMdp,  'parent');
 $elv   = $mk('Trabelsi',  'Yassine','eleve@ecole.tn',     $demoMdp,  'eleve');

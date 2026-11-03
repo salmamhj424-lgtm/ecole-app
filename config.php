@@ -19,8 +19,18 @@ function db(): PDO {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
+        // Multi-écoles : chaque école a son propre schéma PostgreSQL (ecole_1, ecole_2…)
+        use_schema($pdo, $_SESSION['user']['schema'] ?? null);
     }
     return $pdo;
+}
+
+// Sélectionne le schéma de l'école (null = schéma public : gestion des écoles)
+function use_schema(PDO $pdo, ?string $schema): void {
+    if ($schema !== null && !preg_match('/^ecole_\d+$/', $schema)) {
+        throw new RuntimeException('Schéma invalide.');
+    }
+    $pdo->exec($schema ? "SET search_path TO $schema, public" : 'SET search_path TO public');
 }
 
 function h($s): string {
@@ -28,6 +38,7 @@ function h($s): string {
 }
 
 const ROLE_LABELS = [
+    'superadmin' => 'Super administrateur',
     'admin'      => 'Administrateur',
     'enseignant' => 'Enseignant',
     'parent'     => 'Parent',

@@ -24,19 +24,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_SESSION['essais'] >= 5 && time() - $_SESSION['essais_t'] < 60) {
         $erreur = 'Trop d\'essais. Réessayez dans une minute.';
     } else {
-        $st = db()->prepare('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL');
-        $st->execute([$email]);
-        $u = $st->fetch();
+        $pdo = db();
+        $user = null;
 
-        if ($u && password_verify($mdp, $u['mot_de_passe_hash'])) {
+        // 1) super administrateur (schéma public)
+        $st = $pdo->prepare('SELECT * FROM superadmins WHERE email = ?');
+        $st->execute([$email]);
+        $sa = $st->fetch();
+        if ($sa && password_verify($mdp, $sa['mot_de_passe_hash'])) {
+            $user = ['id' => $sa['id'], 'nom' => $sa['nom'], 'prenom' => $sa['prenom'],
+                     'email' => $sa['email'], 'role' => 'superadmin', 'schema' => null, 'ecole' => null];
+        }
+
+        // 2) utilisateurs d'une école : on cherche dans chaque école active
+        if (!$user) {
+            foreach ($pdo->query('SELECT nom, schema_name FROM ecoles WHERE actif = TRUE ORDER BY id')->fetchAll() as $ec) {
+                use_schema($pdo, $ec['schema_name']);
+                $st = $pdo->prepare('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL');
+                $st->execute([$email]);
+                $u = $st->fetch();
+                if ($u && password_verify($mdp, $u['mot_de_passe_hash'])) {
+                    $user = ['id' => $u['id'], 'nom' => $u['nom'], 'prenom' => $u['prenom'],
+                             'email' => $u['email'], 'role' => $u['role'],
+                             'schema' => $ec['schema_name'], 'ecole' => $ec['nom']];
+                    break;
+                }
+            }
+            use_schema($pdo, null);
+        }
+
+        if ($user) {
             session_regenerate_id(true);
-            $_SESSION['user'] = [
-                'id'    => $u['id'],
-                'nom'   => $u['nom'],
-                'prenom'=> $u['prenom'],
-                'email' => $u['email'],
-                'role'  => $u['role'],
-            ];
+            $_SESSION['user'] = $user;
             unset($_SESSION['essais'], $_SESSION['essais_t']);
             header('Location: dashboard.php');
             exit;

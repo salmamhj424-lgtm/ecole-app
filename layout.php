@@ -2,7 +2,9 @@
 // En-tête / pied de page communs à toutes les pages connectées
 function page_start(string $titre, array $u): void {
     $nav = [];
-    if ($u['role'] === 'admin') {
+    if ($u['role'] === 'superadmin') {
+        $nav = ['ecoles.php' => 'Écoles'];
+    } elseif ($u['role'] === 'admin') {
         $nav = [
             'dashboard.php'   => 'Accueil',
             'eleves.php'      => 'Élèves',
@@ -26,7 +28,7 @@ function page_start(string $titre, array $u): void {
         $nav = ['dashboard.php' => 'Accueil', 'paiements.php' => 'Paiements', 'messages.php' => 'Messages'];
     }
     require_once __DIR__ . '/lib_messages.php';
-    if (isset($nav['messages.php'])) {
+    if (isset($nav['messages.php']) && $u['role'] !== 'superadmin') {
         try { $nb = unread_count(db(), (int)$u['id']); if ($nb > 0) $nav['messages.php'] = 'Messages (' . $nb . ')'; } catch (Throwable $e) {}
     }
     $courant = basename($_SERVER['REQUEST_URI']);
@@ -42,7 +44,7 @@ function page_start(string $titre, array $u): void {
 </head>
 <body>
 <header class="top">
-  <div>🏫 <strong>Gestion d'école</strong> <small style="opacity:.7">· <?= h(ANNEE) ?></small></div>
+  <div>🏫 <strong><?= h($u['ecole'] ?? "Gestion d'écoles") ?></strong> <small style="opacity:.7">· <?= h(ANNEE) ?></small></div>
   <div>
     <?= h(trim($u['prenom'] . ' ' . $u['nom'])) ?>
     <span class="role"><?= h(ROLE_LABELS[$u['role']] ?? $u['role']) ?></span>

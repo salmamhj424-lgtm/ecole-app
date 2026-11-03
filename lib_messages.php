@@ -4,7 +4,7 @@
 function ensure_messages_schema(PDO $pdo): void {
     static $done = false;
     if ($done) return;
-    $has = $pdo->query("SELECT 1 FROM information_schema.columns WHERE table_name = 'messages' AND column_name = 'lu'")->fetchColumn();
+    $has = $pdo->query("SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'messages' AND column_name = 'lu'")->fetchColumn();
     if (!$has) {
         $pdo->exec('ALTER TABLE messages ADD COLUMN IF NOT EXISTS lu BOOLEAN NOT NULL DEFAULT FALSE');
     }
