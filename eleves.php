@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/config.php';
 require __DIR__ . '/layout.php';
+require __DIR__ . '/lib_ecoles.php';
 $u = require_login(['admin']);
 $pdo = db();
 
@@ -15,11 +16,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $date   = $_POST['date_naissance'] ?? '';
         $classe = (int)($_POST['classe_id'] ?? 0) ?: null;
         $parent = (int)($_POST['parent_id'] ?? 0) ?: null;
+        // Nouveau parent saisi directement dans le formulaire (facultatif)
+        $npNom    = trim($_POST['np_nom'] ?? '');
+        $npPrenom = trim($_POST['np_prenom'] ?? '');
+        $npEmail  = trim($_POST['np_email'] ?? '');
+        $npMdp    = $_POST['np_mdp'] ?? '';
+        $creerParent = ($npNom !== '' || $npEmail !== '' || $npMdp !== '');
+
+        // En cas d'erreur : on garde ce qui a été saisi pour ne rien retaper
+        $erreur = function (string $msg) use ($id, $nom, $prenom, $date, $classe, $parent, $npNom, $npPrenom, $npEmail) {
+            $_SESSION['old_eleve'] = compact('nom', 'prenom', 'date', 'classe', 'parent', 'npNom', 'npPrenom', 'npEmail');
+            flash($msg, 'err');
+            redirect($id ? "eleves.php?edit=$id" : 'eleves.php');
+        };
 
         $dateOk = DateTime::createFromFormat('Y-m-d', $date);
-        if ($nom === '' || $prenom === '' || !$dateOk || $dateOk > new DateTime()) {
-            flash('Données invalides : nom, prénom et date de naissance (passée) sont obligatoires.', 'err');
-            redirect($id ? "eleves.php?edit=$id" : 'eleves.php');
+        if ($nom === '' || $prenom === '' || !$dateOk) {
+            $erreur('Données invalides : nom, prénom et date de naissance sont obligatoires.');
+        }
+        // École primaire : l'élève doit avoir entre 3 et 15 ans
+        $age = (int)$dateOk->diff(new DateTime('today'))->format('%r%y');
+        if ($dateOk > new DateTime('today') || $age < 3 || $age > 15) {
+            $erreur("Date de naissance impossible pour un élève d'école primaire (l'âge doit être entre 3 et 15 ans).");
+        }
+        if ($creerParent) {
+            if ($npNom === '' || !filter_var($npEmail, FILTER_VALIDATE_EMAIL)) {
+                $erreur('Nouveau parent : le nom et un email valide sont obligatoires.');
+            }
+            if (strlen($npMdp) < 10) {
+                $erreur('Nouveau parent : le mot de passe doit contenir au moins 10 caractères.');
+            }
+            if (email_utilise($pdo, $npEmail)) {
+                $erreur('Nouveau parent : cet email est déjà utilisé.');
+            }
         }
         // la classe doit exister et ne pas être pleine
         if ($classe) {
@@ -27,24 +56,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $st->execute([$classe]);
             $cap = $st->fetchColumn();
             if ($cap === false) {
-                flash('Classe introuvable.', 'err');
-                redirect('eleves.php');
+                $erreur('Classe introuvable.');
             }
             $st = $pdo->prepare('SELECT COUNT(*) FROM eleves WHERE classe_id = ? AND deleted_at IS NULL AND id <> ?');
             $st->execute([$classe, $id]);
             if ((int)$st->fetchColumn() >= (int)$cap) {
-                flash('Cette classe est complète (capacité atteinte).', 'err');
-                redirect($id ? "eleves.php?edit=$id" : 'eleves.php');
+                $erreur('Cette classe est complète (capacité atteinte).');
             }
+        }
+        $parentCree = '';
+        if ($creerParent) {
+            $ins = $pdo->prepare("INSERT INTO users (nom, prenom, email, mot_de_passe_hash, role) VALUES (?,?,?,?, 'parent') RETURNING id");
+            $ins->execute([$npNom, $npPrenom, $npEmail, password_hash($npMdp, PASSWORD_BCRYPT)]);
+            $parent = (int)$ins->fetchColumn();
+            $parentCree = " Compte parent créé ($npEmail) et rattaché à l'élève.";
         }
         if ($id) {
             $pdo->prepare('UPDATE eleves SET nom=?, prenom=?, date_naissance=?, classe_id=?, parent_id=? WHERE id=? AND deleted_at IS NULL')
                 ->execute([$nom, $prenom, $date, $classe, $parent, $id]);
-            flash('Dossier modifié.');
+            flash('Dossier modifié.' . $parentCree);
         } else {
             $pdo->prepare('INSERT INTO eleves (nom, prenom, date_naissance, classe_id, parent_id, annee_scolaire) VALUES (?,?,?,?,?,?)')
                 ->execute([$nom, $prenom, $date, $classe, $parent, ANNEE]);
-            flash('Élève inscrit.');
+            flash('Élève inscrit.' . $parentCree);
         }
     } elseif ($action === 'delete' && $id) {
         $pdo->prepare('UPDATE eleves SET deleted_at = NOW() WHERE id = ?')->execute([$id]);
@@ -53,6 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('eleves.php');
 }
 
+$old = $_SESSION['old_eleve'] ?? null;
+unset($_SESSION['old_eleve']);
 $edit = null;
 if (isset($_GET['edit'])) {
     $st = $pdo->prepare('SELECT * FROM eleves WHERE id = ? AND deleted_at IS NULL');
@@ -88,30 +124,53 @@ page_start('Élèves', $u);
   <input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
   <div class="ligne">
     <div><label>Nom</label>
-      <input type="text" name="nom" maxlength="100" required value="<?= h($edit['nom'] ?? '') ?>"></div>
+      <input type="text" name="nom" maxlength="100" required value="<?= h($edit['nom'] ?? $old['nom'] ?? '') ?>"></div>
     <div><label>Prénom</label>
-      <input type="text" name="prenom" maxlength="100" required value="<?= h($edit['prenom'] ?? '') ?>"></div>
+      <input type="text" name="prenom" maxlength="100" required value="<?= h($edit['prenom'] ?? $old['prenom'] ?? '') ?>"></div>
     <div><label>Date de naissance</label>
-      <input type="date" name="date_naissance" max="<?= date('Y-m-d') ?>" required value="<?= h($edit['date_naissance'] ?? '') ?>"></div>
+      <input type="date" name="date_naissance" min="<?= date('Y-m-d', strtotime('-16 years')) ?>" max="<?= date('Y-m-d', strtotime('-3 years')) ?>" required value="<?= h($edit['date_naissance'] ?? '') ?>"></div>
     <div><label>Classe</label>
       <select name="classe_id">
         <option value="">— non affecté —</option>
         <?php foreach ($classes as $c): ?>
-          <option value="<?= (int)$c['id'] ?>" <?= (int)($edit['classe_id'] ?? 0) === (int)$c['id'] ? 'selected' : '' ?>>
+          <option value="<?= (int)$c['id'] ?>" <?= (int)($edit['classe_id'] ?? $old['classe'] ?? 0) === (int)$c['id'] ? 'selected' : '' ?>>
             <?= h($c['niveau'] . ' ' . $c['section']) ?>
           </option>
         <?php endforeach; ?>
       </select></div>
-    <div><label>Parent</label>
-      <select name="parent_id">
+    <div><label>Parent <a href="#" id="np-toggle" style="font-weight:700;font-size:.85rem;margin-left:.4rem">➕ Nouveau parent</a></label>
+      <select name="parent_id" id="parent_id">
         <option value="">— non renseigné —</option>
         <?php foreach ($parents as $p): ?>
-          <option value="<?= (int)$p['id'] ?>" <?= (int)($edit['parent_id'] ?? 0) === (int)$p['id'] ? 'selected' : '' ?>>
+          <option value="<?= (int)$p['id'] ?>" <?= (int)($edit['parent_id'] ?? $old['parent'] ?? 0) === (int)$p['id'] ? 'selected' : '' ?>>
             <?= h($p['prenom'] . ' ' . $p['nom']) ?>
           </option>
         <?php endforeach; ?>
       </select></div>
   </div>
+
+  <?php $npOuvert = !empty($old['npNom']) || !empty($old['npEmail']); ?>
+  <div id="np" class="ligne" style="margin-top:.8rem;padding:1rem;border-radius:16px;background:#f5f1ff;<?= $npOuvert ? '' : 'display:none' ?>">
+    <div style="grid-column:1/-1"><strong>👨‍👩‍👧 Nouveau parent</strong>
+      <small style="color:var(--gris)"> — le compte est créé et rattaché à l'élève en même temps.</small></div>
+    <div><label>Nom</label><input type="text" name="np_nom" maxlength="100" value="<?= h($old['npNom'] ?? '') ?>"></div>
+    <div><label>Prénom</label><input type="text" name="np_prenom" maxlength="100" value="<?= h($old['npPrenom'] ?? '') ?>"></div>
+    <div><label>Email</label><input type="email" name="np_email" maxlength="150" value="<?= h($old['npEmail'] ?? '') ?>"></div>
+    <div><label>Mot de passe (10 caractères min.)</label><input type="text" name="np_mdp" minlength="10" autocomplete="off"></div>
+  </div>
+  <script>
+    (function () {
+      var box = document.getElementById('np'), sel = document.getElementById('parent_id');
+      document.getElementById('np-toggle').addEventListener('click', function (e) {
+        e.preventDefault();
+        var show = box.style.display === 'none';
+        box.style.display = show ? '' : 'none';
+        if (show) { sel.value = ''; box.querySelector('input').focus(); }
+        else { box.querySelectorAll('input').forEach(function (i) { i.value = ''; }); }
+      });
+    })();
+  </script>
+
   <div class="actions">
     <button type="submit"><?= $edit ? 'Enregistrer' : 'Inscrire' ?></button>
     <?php if ($edit): ?><a class="btn gris" href="eleves.php">Annuler</a><?php endif; ?>
