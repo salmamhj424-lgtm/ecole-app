@@ -63,5 +63,11 @@ function page_start(string $titre, array $u): void {
 }
 
 function page_end(): void {
-    echo "</main>\n</body>\n</html>\n";
+    echo "</main>\n";
+    // les chiffres des tuiles « montent » jusqu'à leur valeur
+    echo "<script>(function(){var r=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;"
+       . "document.querySelectorAll('.stat b').forEach(function(el){var t=el.textContent.trim();if(r||!/^\\d+$/.test(t))return;"
+       . "var n=parseInt(t,10),s=null;function f(ts){if(!s)s=ts;var p=Math.min((ts-s)/900,1);el.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}"
+       . "el.textContent='0';requestAnimationFrame(f);});})();</script>\n";
+    echo "</body>\n</html>\n";
 }

@@ -205,3 +205,54 @@ td form { display: inline; }
 td button.petit { margin: 0 0 0 .3rem; padding: .3rem .8rem; font-size: .82rem; }
 td a.petit { display: inline-block; background: var(--violet-clair); color: var(--violet-fonce); border-radius: 99px; text-decoration: none; padding: .3rem .8rem; font-size: .82rem; font-weight: 700; }
 td input[type=text] { padding: .4rem .7rem; border: 2px solid var(--bord); border-radius: 99px; font: inherit; font-size: .85rem; background: #fcfbff; }
+
+/* ---------- Animations ---------- */
+@keyframes monte   { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes entre   { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes flotte  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes derive  { 0%,100% { transform: translateX(-10px); } 50% { transform: translateX(14px); } }
+@keyframes pulse   { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+@keyframes brille  { 0%,100% { opacity: .35; transform: scale(.8) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(20deg); } }
+@keyframes drapeau { 0%,100% { transform: skewY(0) scaleX(1); } 50% { transform: skewY(-9deg) scaleX(.82); } }
+@keyframes ecrit   { 0%,100% { transform: rotate(0) translate(0,0); } 50% { transform: rotate(-9deg) translate(-4px,-5px); } }
+@keyframes balance { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes saute   { 0%,100% { transform: translateY(0) scale(1); } 40% { transform: translateY(-7px) scale(1.08); } 60% { transform: translateY(0) scale(.97); } }
+@keyframes degrade { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+.login-wrap { background-size: 220% 220%; animation: degrade 14s ease-in-out infinite alternate; }
+.card, form.cadre, .hero, nav.menu { animation: monte .55s both; }
+.login-art svg { animation: monte .8s both; }
+header.top { animation: entre .5s both; }
+.hero { animation-delay: .05s; }
+.stat { animation: monte .5s both; }
+.stats .stat:nth-child(2) { animation-delay: .08s; } .stats .stat:nth-child(3) { animation-delay: .16s; } .stats .stat:nth-child(4) { animation-delay: .24s; }
+.grid .tuile { animation: monte .55s both; }
+.grid .tuile:nth-child(1) { animation-delay: .10s; } .grid .tuile:nth-child(2) { animation-delay: .16s; } .grid .tuile:nth-child(3) { animation-delay: .22s; }
+.grid .tuile:nth-child(4) { animation-delay: .28s; } .grid .tuile:nth-child(5) { animation-delay: .34s; } .grid .tuile:nth-child(6) { animation-delay: .40s; }
+.grid .tuile:nth-child(7) { animation-delay: .46s; } .grid .tuile:nth-child(n+8) { animation-delay: .52s; }
+.tuile.lien:hover .ico { animation: saute .6s; }
+.erreur, .succes { animation: entre .4s both; }
+table.liste tr { animation: monte .4s both; }
+nav.menu a { transition: background .15s, transform .15s; }
+nav.menu a:hover { transform: translateY(-2px); }
+.hero h2 .vague, h2 .vague { display: inline-block; transform-origin: 70% 80%; animation: balance 1.6s ease-in-out infinite; }
+
+/* illustrations SVG */
+svg .nuage, svg .soleil, svg .etoiles path, svg .drapeau, svg .crayon, svg .livres, svg .fleurs, svg .halo { transform-box: fill-box; transform-origin: center; }
+svg .nuage.n1 { animation: derive 9s ease-in-out infinite; }
+svg .nuage.n2 { animation: derive 12s ease-in-out infinite reverse; }
+svg .soleil { animation: flotte 4s ease-in-out infinite; }
+svg .halo { animation: pulse 3s ease-in-out infinite; }
+svg .drapeau { transform-origin: left center; animation: drapeau 1.8s ease-in-out infinite; }
+svg .crayon { transform-origin: bottom center; animation: ecrit 2.4s ease-in-out infinite; }
+svg .livres { animation: flotte 5s ease-in-out infinite; }
+svg .fleurs { transform-origin: bottom center; animation: balance 3.5s ease-in-out infinite; }
+svg .etoiles path { animation: brille 2.6s ease-in-out infinite; }
+svg .etoiles path:nth-child(2) { animation-delay: .8s; } svg .etoiles path:nth-child(3) { animation-delay: 1.6s; }
+
+/* quand il n'y a rien à afficher : petite animation mignonne */
+.vide::before { content: "🌱"; display: block; font-size: 2.2rem; margin-bottom: .2rem; animation: flotte 2.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

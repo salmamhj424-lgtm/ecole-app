@@ -82,7 +82,7 @@ if ($u['role'] === 'admin') {
 <main>
   <section class="hero">
     <div>
-      <h2>Bonjour <?= h($u['prenom'] ?: $u['nom']) ?> 👋</h2>
+      <h2>Bonjour <?= h($u['prenom'] ?: $u['nom']) ?> <span class="vague">👋</span></h2>
       <p><?= h(ROLE_LABELS[$u['role']] ?? '') ?> · année scolaire <?= h(ANNEE) ?></p>
     </div>
     <?= illustration_bandeau() ?>
