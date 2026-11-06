@@ -22,10 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $npEmail  = trim($_POST['np_email'] ?? '');
         $npMdp    = $_POST['np_mdp'] ?? '';
         $creerParent = ($npNom !== '' || $npEmail !== '' || $npMdp !== '');
+        // Nouvelle classe saisie directement dans le formulaire (facultatif)
+        $ncNiveau  = $_POST['nc_niveau'] ?? '';
+        $ncSection = strtoupper(trim($_POST['nc_section'] ?? ''));
+        $ncCap     = (int)($_POST['nc_cap'] ?? 25);
+        $creerClasse = ($ncSection !== '');
 
         // En cas d'erreur : on garde ce qui a été saisi pour ne rien retaper
-        $erreur = function (string $msg) use ($id, $nom, $prenom, $date, $classe, $parent, $npNom, $npPrenom, $npEmail) {
-            $_SESSION['old_eleve'] = compact('nom', 'prenom', 'date', 'classe', 'parent', 'npNom', 'npPrenom', 'npEmail');
+        $erreur = function (string $msg) use ($id, $nom, $prenom, $date, $classe, $parent, $npNom, $npPrenom, $npEmail, $ncNiveau, $ncSection, $ncCap) {
+            $_SESSION['old_eleve'] = compact('nom', 'prenom', 'date', 'classe', 'parent', 'npNom', 'npPrenom', 'npEmail', 'ncNiveau', 'ncSection', 'ncCap');
             flash($msg, 'err');
             redirect($id ? "eleves.php?edit=$id" : 'eleves.php');
         };
@@ -49,6 +54,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (email_utilise($pdo, $npEmail)) {
                 $erreur('Nouveau parent : cet email est déjà utilisé.');
             }
+        }
+        $classeCree = '';
+        if ($creerClasse) {
+            if (!in_array($ncNiveau, ['CP', 'CE1', 'CE2', 'CM1', 'CM2'], true) || strlen($ncSection) > 5 || $ncCap < 1 || $ncCap > 100) {
+                $erreur('Nouvelle classe : niveau, section (max 5 caractères) et capacité (1 à 100) sont obligatoires.');
+            }
+            $ex = $pdo->prepare('SELECT id FROM classes WHERE niveau = ? AND section = ? AND deleted_at IS NULL');
+            $ex->execute([$ncNiveau, $ncSection]);
+            if ($ex->fetchColumn()) {
+                $erreur("Nouvelle classe : $ncNiveau $ncSection existe déjà, choisissez-la dans la liste.");
+            }
+            $ins = $pdo->prepare('INSERT INTO classes (niveau, section, capacite, annee_scolaire) VALUES (?,?,?,?) RETURNING id');
+            $ins->execute([$ncNiveau, $ncSection, $ncCap, ANNEE]);
+            $classe = (int)$ins->fetchColumn();
+            $classeCree = " Classe $ncNiveau $ncSection créée.";
         }
         // la classe doit exister et ne pas être pleine
         if ($classe) {
@@ -74,11 +94,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($id) {
             $pdo->prepare('UPDATE eleves SET nom=?, prenom=?, date_naissance=?, classe_id=?, parent_id=? WHERE id=? AND deleted_at IS NULL')
                 ->execute([$nom, $prenom, $date, $classe, $parent, $id]);
-            flash('Dossier modifié.' . $parentCree);
+            flash('Dossier modifié.' . $classeCree . $parentCree);
         } else {
             $pdo->prepare('INSERT INTO eleves (nom, prenom, date_naissance, classe_id, parent_id, annee_scolaire) VALUES (?,?,?,?,?,?)')
                 ->execute([$nom, $prenom, $date, $classe, $parent, ANNEE]);
-            flash('Élève inscrit.' . $parentCree);
+            flash('Élève inscrit.' . $classeCree . $parentCree);
         }
     } elseif ($action === 'delete' && $id) {
         $pdo->prepare('UPDATE eleves SET deleted_at = NOW() WHERE id = ?')->execute([$id]);
@@ -129,8 +149,8 @@ page_start('Élèves', $u);
       <input type="text" name="prenom" maxlength="100" required value="<?= h($edit['prenom'] ?? $old['prenom'] ?? '') ?>"></div>
     <div><label>Date de naissance</label>
       <input type="date" name="date_naissance" min="<?= date('Y-m-d', strtotime('-16 years')) ?>" max="<?= date('Y-m-d', strtotime('-3 years')) ?>" required value="<?= h($edit['date_naissance'] ?? '') ?>"></div>
-    <div><label>Classe</label>
-      <select name="classe_id">
+    <div><label>Classe <a href="#" id="nc-toggle" style="font-weight:700;font-size:.85rem;margin-left:.4rem">➕ Nouvelle classe</a></label>
+      <select name="classe_id" id="classe_id">
         <option value="">— non affecté —</option>
         <?php foreach ($classes as $c): ?>
           <option value="<?= (int)$c['id'] ?>" <?= (int)($edit['classe_id'] ?? $old['classe'] ?? 0) === (int)$c['id'] ? 'selected' : '' ?>>
@@ -149,6 +169,17 @@ page_start('Élèves', $u);
       </select></div>
   </div>
 
+  <?php $ncOuvert = !empty($old['ncSection']); ?>
+  <div id="nc" class="ligne" style="margin-top:.8rem;padding:1rem;border-radius:16px;background:#eaf5ff;<?= $ncOuvert ? '' : 'display:none' ?>">
+    <div style="grid-column:1/-1"><strong>🏫 Nouvelle classe</strong>
+      <small style="color:var(--gris)"> — elle est créée et l'élève y est inscrit en même temps.</small></div>
+    <div><label>Niveau</label>
+      <select name="nc_niveau"><?php foreach (['CP', 'CE1', 'CE2', 'CM1', 'CM2'] as $n): ?>
+        <option <?= ($old['ncNiveau'] ?? '') === $n ? 'selected' : '' ?>><?= $n ?></option><?php endforeach; ?></select></div>
+    <div><label>Section (A, B…)</label><input type="text" name="nc_section" maxlength="5" value="<?= h($old['ncSection'] ?? '') ?>"></div>
+    <div><label>Capacité</label><input type="number" name="nc_cap" min="1" max="100" value="<?= h($old['ncCap'] ?? 25) ?>"></div>
+  </div>
+
   <?php $npOuvert = !empty($old['npNom']) || !empty($old['npEmail']); ?>
   <div id="np" class="ligne" style="margin-top:.8rem;padding:1rem;border-radius:16px;background:#f5f1ff;<?= $npOuvert ? '' : 'display:none' ?>">
     <div style="grid-column:1/-1"><strong>👨‍👩‍👧 Nouveau parent</strong>
@@ -159,6 +190,16 @@ page_start('Élèves', $u);
     <div><label>Mot de passe (10 caractères min.)</label><input type="text" name="np_mdp" minlength="10" autocomplete="off"></div>
   </div>
   <script>
+    (function () {
+      var nc = document.getElementById('nc'), cs = document.getElementById('classe_id');
+      document.getElementById('nc-toggle').addEventListener('click', function (e) {
+        e.preventDefault();
+        var show = nc.style.display === 'none';
+        nc.style.display = show ? '' : 'none';
+        if (show) { cs.value = ''; nc.querySelector('input').focus(); }
+        else { nc.querySelectorAll('input[type=text]').forEach(function (i) { i.value = ''; }); }
+      });
+    })();
     (function () {
       var box = document.getElementById('np'), sel = document.getElementById('parent_id');
       document.getElementById('np-toggle').addEventListener('click', function (e) {

@@ -37,6 +37,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cid = (int)($_POST['classe_id'] ?? 0);
         $c = classe_ok($pdo, $u, $cid);
         $mid = (int)($_POST['matiere_id'] ?? 0);
+        // Nouvelle matière saisie directement (admin uniquement)
+        $nmNom  = trim($_POST['nm_nom'] ?? '');
+        $nmCoef = (float)str_replace(',', '.', $_POST['nm_coef'] ?? '1');
+        $matCree = '';
+        if ($nmNom !== '' && $u['role'] === 'admin' && $c) {
+            if (mb_strlen($nmNom) > 100 || $nmCoef <= 0 || $nmCoef > 99) {
+                flash('Nouvelle matière : nom (max 100 caractères) et coefficient (> 0) obligatoires.', 'err');
+                redirect("notes.php?classe=$cid");
+            }
+            $ins = $pdo->prepare('INSERT INTO matieres (nom, coefficient, niveau) VALUES (?,?,NULL) RETURNING id');
+            $ins->execute([$nmNom, $nmCoef]);
+            $mid = (int)$ins->fetchColumn();
+            $matCree = " Matière « $nmNom » créée.";
+        }
         $type = in_array($_POST['type'] ?? '', ['controle', 'examen'], true) ? $_POST['type'] : 'controle';
         $date = $_POST['date_eval'] ?? '';
         $bareme = (float)str_replace(',', '.', $_POST['bareme'] ?? '20');
@@ -46,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $pdo->prepare('INSERT INTO evaluations (matiere_id, classe_id, type, date_eval, bareme, annee_scolaire) VALUES (?,?,?,?,?,?)')
             ->execute([$mid, $cid, $type, $date, $bareme, ANNEE]);
-        flash('Évaluation créée. Cliquez sur « Saisir les notes ».');
+        flash('Évaluation créée.' . $matCree . ' Cliquez sur « Saisir les notes ».');
         redirect("notes.php?classe=$cid");
     }
 
@@ -163,8 +177,8 @@ if (isset($_GET['classe'])) {
       <input type="hidden" name="action" value="add_eval">
       <input type="hidden" name="classe_id" value="<?= (int)$c['id'] ?>">
       <div class="ligne">
-        <div><label>Matière</label>
-          <select name="matiere_id" required>
+        <div><label>Matière<?php if ($u['role'] === 'admin'): ?> <a href="#" id="nm-toggle" style="font-weight:700;font-size:.85rem;margin-left:.4rem">➕ Nouvelle matière</a><?php endif; ?></label>
+          <select name="matiere_id" id="matiere_id">
             <?php foreach ($matieres as $m): ?><option value="<?= (int)$m['id'] ?>"><?= h($m['nom']) ?></option><?php endforeach; ?>
           </select></div>
         <div><label>Type</label>
@@ -174,6 +188,26 @@ if (isset($_GET['classe'])) {
         <div><label>Barème (sur)</label>
           <input type="number" name="bareme" min="1" max="100" step="0.5" value="20" required></div>
       </div>
+      <?php if ($u['role'] === 'admin'): ?>
+      <div id="nm" class="ligne" style="margin-top:.8rem;padding:1rem;border-radius:16px;background:#e9f9f1;display:none">
+        <div style="grid-column:1/-1"><strong>📚 Nouvelle matière</strong>
+          <small style="color:var(--gris)"> — elle est créée (pour tous les niveaux) et utilisée pour cette évaluation.</small></div>
+        <div><label>Nom</label><input type="text" name="nm_nom" maxlength="100"></div>
+        <div><label>Coefficient</label><input type="number" name="nm_coef" min="0.5" max="99" step="0.5" value="1"></div>
+      </div>
+      <script>
+        (function () {
+          var box = document.getElementById('nm'), sel = document.getElementById('matiere_id');
+          document.getElementById('nm-toggle').addEventListener('click', function (e) {
+            e.preventDefault();
+            var show = box.style.display === 'none';
+            box.style.display = show ? '' : 'none';
+            if (show) { box.querySelector('input[type=text]').focus(); }
+            else { box.querySelector('input[type=text]').value = ''; }
+          });
+        })();
+      </script>
+      <?php endif; ?>
       <div class="actions"><button type="submit">Créer l'évaluation</button></div>
     </form>
 
