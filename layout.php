@@ -40,6 +40,12 @@ function page_start(string $titre, array $u): void {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#7c6cf0">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="École">
   <title><?= h($titre) ?> – École</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -71,5 +77,15 @@ function page_end(): void {
        . "document.querySelectorAll('.stat b').forEach(function(el){var t=el.textContent.trim();if(r||!/^\\d+$/.test(t))return;"
        . "var n=parseInt(t,10),s=null;function f(ts){if(!s)s=ts;var p=Math.min((ts-s)/900,1);el.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);}"
        . "el.textContent='0';requestAnimationFrame(f);});})();</script>\n";
-    echo "</body>\n</html>\n";
+    echo '<script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/sw.js").catch(function (error) {
+            console.error("Service Worker non enregistré :", error);
+          });
+        });
+      }
+    </script>';
+
+    echo "</body>\\n</html>\\n";
 }

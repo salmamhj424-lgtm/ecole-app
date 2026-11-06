@@ -263,3 +263,31 @@ svg .etoiles path:nth-child(2) { animation-delay: .8s; } svg .etoiles path:nth-c
   box-shadow: var(--ombre); }
 .son-toggle:hover { transform: scale(1.08); background: var(--violet-clair); }
 .son-toggle.coupe { opacity: .65; }
+
+
+/* ---------- Adaptation mobile / PWA ---------- */
+@media (max-width: 720px) {
+  header.top {
+    padding: .8rem 1rem;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  nav.menu {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: .65rem .8rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  nav.menu a { flex: 0 0 auto; }
+  main { margin: 1rem auto; padding: 0 .8rem; }
+  .hero { padding: 1.1rem; border-radius: 18px; }
+  .hero h2 { font-size: 1.35rem; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .7rem; }
+  .tuile { padding: .9rem; }
+  .stats { gap: .65rem; }
+  .stat { flex: 1 1 130px; min-width: 0; padding: .85rem; }
+  table.liste { display: block; overflow-x: auto; white-space: nowrap; }
+  form.cadre { padding: 1rem; }
+  .card { padding: 1.5rem; }
+}
