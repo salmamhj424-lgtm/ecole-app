@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
-require __DIR__ . '/lib_ui.php';
+require_once __DIR__ . '/lib_ui.php';
 $u = require_login();
 if ($u['role'] === 'superadmin') { redirect('ecoles.php'); }
 
@@ -110,5 +110,6 @@ if ($u['role'] === 'admin') {
     <?php endforeach; ?>
   </div>
 </main>
+<?= script_sons() ?>
 </body>
 </html>

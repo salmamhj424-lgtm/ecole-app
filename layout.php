@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/lib_ui.php';
 // En-tête / pied de page communs à toutes les pages connectées
 function page_start(string $titre, array $u): void {
     $nav = [];
@@ -64,6 +65,7 @@ function page_start(string $titre, array $u): void {
 
 function page_end(): void {
     echo "</main>\n";
+    echo script_sons();
     // les chiffres des tuiles « montent » jusqu'à leur valeur
     echo "<script>(function(){var r=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;"
        . "document.querySelectorAll('.stat b').forEach(function(el){var t=el.textContent.trim();if(r||!/^\\d+$/.test(t))return;"

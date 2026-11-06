@@ -71,3 +71,78 @@ function illustration_bandeau(): string {
 </svg>
 <?php return ob_get_clean();
 }
+
+// Sons générés par le navigateur (Web Audio) : aucun fichier audio, bouton 🔊/🔇 pour couper
+function script_sons(): string {
+    ob_start(); ?>
+<button type="button" id="son-toggle" class="son-toggle" aria-label="Activer ou couper le son" title="Son">🔊</button>
+<script>
+(function () {
+  var Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) { var b0 = document.getElementById('son-toggle'); if (b0) b0.style.display = 'none'; return; }
+  var ctx = null, actif = true, attente = null;
+  try { actif = localStorage.getItem('son') !== 'off'; } catch (e) {}
+  var bouton = document.getElementById('son-toggle');
+  function maj() { bouton.textContent = actif ? '🔊' : '🔇'; bouton.classList.toggle('coupe', !actif); }
+  function ctxPret() {
+    if (!ctx) { try { ctx = new Ctx(); } catch (e) { return null; } }
+    if (ctx.state === 'suspended') { ctx.resume(); }
+    return ctx;
+  }
+  // une note : fréquence de départ -> d'arrivée, durée, début, volume, forme d'onde
+  function note(c, f1, f2, dur, debut, vol, type) {
+    var t = c.currentTime + debut, o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f1, t);
+    if (f2 && f2 !== f1) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  var SONS = {
+    clic:    function (c) { note(c, 520, 780, 0.07, 0, 0.07, 'sine'); },
+    succes:  function (c) { note(c, 784, 784, 0.16, 0, 0.09); note(c, 988, 988, 0.16, 0.11, 0.09); note(c, 1318, 1318, 0.30, 0.22, 0.09); },
+    erreur:  function (c) { note(c, 220, 160, 0.16, 0, 0.09, 'triangle'); note(c, 200, 140, 0.22, 0.17, 0.09, 'triangle'); },
+    bienvenue: function (c) { note(c, 523, 523, 0.14, 0, 0.08); note(c, 659, 659, 0.14, 0.12, 0.08); note(c, 784, 784, 0.14, 0.24, 0.08); note(c, 1047, 1047, 0.40, 0.36, 0.09); }
+  };
+  function jouer(nom) {
+    if (!actif) return;
+    var c = ctxPret(); if (!c) return;
+    if (c.state === 'running') { SONS[nom](c); }
+    else { attente = nom; setTimeout(function () { if (attente === nom) attente = null; }, 5000); } // jouera au premier clic
+  }
+  function premierGeste() {
+    if (attente && actif) { var n = attente; attente = null; var c = ctxPret(); if (c) setTimeout(function () { SONS[n](c); }, 60); }
+  }
+  document.addEventListener('pointerdown', premierGeste, { once: true });
+  document.addEventListener('keydown', premierGeste, { once: true });
+
+  bouton.addEventListener('click', function (e) {
+    e.stopPropagation();
+    actif = !actif; maj();
+    try { localStorage.setItem('son', actif ? 'on' : 'off'); } catch (x) {}
+    if (actif) { var c = ctxPret(); if (c) SONS.clic(c); }
+  });
+  // clic sur un bouton, un lien ou une tuile
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('#son-toggle')) return;
+    if (e.target.closest && e.target.closest('a, button, .tuile.lien, summary')) jouer('clic');
+  }, true);
+
+  // à l'ouverture de la page : message de succès / d'erreur, ou bienvenue après connexion
+  var form = document.querySelector('form.card');
+  if (form) { form.addEventListener('submit', function () { try { sessionStorage.setItem('son_bienvenue', '1'); } catch (e) {} }); }
+  window.addEventListener('load', function () {
+    var bienvenue = false;
+    try { bienvenue = sessionStorage.getItem('son_bienvenue') === '1'; sessionStorage.removeItem('son_bienvenue'); } catch (e) {}
+    if (document.querySelector('.erreur')) { jouer('erreur'); }
+    else if (document.querySelector('.succes')) { jouer('succes'); }
+    else if (bienvenue && document.querySelector('.hero')) { jouer('bienvenue'); }
+  });
+  maj();
+})();
+</script>
+<?php return ob_get_clean();
+}

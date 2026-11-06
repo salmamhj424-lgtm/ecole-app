@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
-require __DIR__ . '/lib_ui.php';
+require_once __DIR__ . '/lib_ui.php';
 
 if (current_user()) {
     header('Location: dashboard.php');
@@ -97,5 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </form>
   </div>
 </div>
+<?= script_sons() ?>
 </body>
 </html>
