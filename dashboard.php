@@ -68,6 +68,7 @@ if ($u['role'] === 'admin') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tableau de bord – École</title>
   <link rel="stylesheet" href="style.css">
+  <?= theme_init() ?>
 </head>
 <body>
 <header class="top">

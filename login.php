@@ -72,14 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#7c6cf0">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/png" href="/icons/icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="École">
   <title>Connexion – École</title>
   <link rel="stylesheet" href="style.css">
+  <?= theme_init() ?>
 </head>
 <body>
 <div class="login-wrap">
@@ -104,14 +99,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 </div>
 <?= script_sons() ?>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function (error) {
-        console.error("Service Worker non enregistré :", error);
-      });
-    });
-  }
-</script>
 </body>
 </html>

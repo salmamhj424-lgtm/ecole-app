@@ -32,25 +32,25 @@ function illustration_ecole(): string {
   <!-- école -->
   <rect x="150" y="190" width="220" height="150" rx="14" fill="#ffd0e3"/>
   <rect x="150" y="190" width="220" height="150" rx="14" fill="none" stroke="#fff" stroke-width="4"/>
-  <polygon points="130,196 260,120 390,196" fill="#9d8cf5"/>
+  <polygon points="130,196 260,120 390,196" style="fill:var(--violet)"/>
   <polygon points="130,196 260,120 390,196" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
-  <circle cx="260" cy="165" r="19" fill="#fff"/><circle cx="260" cy="165" r="19" fill="none" stroke="#7c6cf0" stroke-width="4"/>
-  <path d="M260 165 V153 M260 165 L269 170" stroke="#5b4bc4" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="260" cy="165" r="19" fill="#fff"/><circle cx="260" cy="165" r="19" fill="none" style="stroke:var(--violet)" stroke-width="4"/>
+  <path d="M260 165 V153 M260 165 L269 170" style="stroke:var(--violet-fonce)" stroke-width="3" stroke-linecap="round"/>
   <!-- drapeau -->
-  <line x1="260" y1="120" x2="260" y2="92" stroke="#5b4bc4" stroke-width="4" stroke-linecap="round"/>
+  <line x1="260" y1="120" x2="260" y2="92" style="stroke:var(--violet-fonce)" stroke-width="4" stroke-linecap="round"/>
   <polygon class="drapeau" points="260,92 288,100 260,108" fill="#ff6fa5"/>
   <!-- porte et fenêtres -->
-  <rect x="235" y="268" width="50" height="72" rx="25 25 0 0" fill="#7c6cf0"/>
+  <path d="M235 340 V293 a25 25 0 0 1 50 0 V340 Z" style="fill:var(--violet)"/>
   <circle cx="276" cy="306" r="3" fill="#ffe08a"/>
   <g fill="#cfe8ff" stroke="#fff" stroke-width="3"><rect x="172" y="226" width="44" height="40" rx="10"/><rect x="304" y="226" width="44" height="40" rx="10"/>
     <rect x="172" y="284" width="44" height="40" rx="10" opacity=".0"/></g>
-  <g stroke="#9d8cf5" stroke-width="2"><line x1="194" y1="226" x2="194" y2="266"/><line x1="172" y1="246" x2="216" y2="246"/><line x1="326" y1="226" x2="326" y2="266"/><line x1="304" y1="246" x2="348" y2="246"/></g>
+  <g style="stroke:var(--violet)" stroke-width="2"><line x1="194" y1="226" x2="194" y2="266"/><line x1="172" y1="246" x2="216" y2="246"/><line x1="326" y1="226" x2="326" y2="266"/><line x1="304" y1="246" x2="348" y2="246"/></g>
   <!-- fleurs -->
   <g class="fleurs"><line x1="120" y1="350" x2="120" y2="372" stroke="#5cc79a" stroke-width="3"/><circle cx="120" cy="346" r="9" fill="#ff9fc2"/><circle cx="120" cy="346" r="3.5" fill="#ffe08a"/>
      <line x1="405" y1="352" x2="405" y2="374" stroke="#5cc79a" stroke-width="3"/><circle cx="405" cy="348" r="9" fill="#ffd36e"/><circle cx="405" cy="348" r="3.5" fill="#fff"/></g>
   <!-- livres + crayon -->
-  <g class="livres"><g transform="translate(60 318)"><rect width="62" height="14" rx="4" fill="#7c6cf0"/><rect y="-14" width="52" height="14" rx="4" fill="#ff9fc2" transform="translate(5 0)"/><rect y="-28" width="44" height="14" rx="4" fill="#ffd36e" transform="translate(9 0)"/></g></g>
-  <g class="crayon"><g transform="translate(410 300) rotate(35)"><rect width="14" height="70" rx="3" fill="#ffd36e"/><polygon points="0,70 14,70 7,86" fill="#ffe9c9"/><polygon points="3.5,78 10.5,78 7,86" fill="#5b4bc4"/><rect width="14" height="10" rx="3" fill="#ff9fc2"/></g></g>
+  <g class="livres"><g transform="translate(60 318)"><rect width="62" height="14" rx="4" style="fill:var(--violet)"/><rect y="-14" width="52" height="14" rx="4" fill="#ff9fc2" transform="translate(5 0)"/><rect y="-28" width="44" height="14" rx="4" fill="#ffd36e" transform="translate(9 0)"/></g></g>
+  <g class="crayon"><g transform="translate(410 300) rotate(35)"><rect width="14" height="70" rx="3" fill="#ffd36e"/><polygon points="0,70 14,70 7,86" fill="#ffe9c9"/><polygon points="3.5,78 10.5,78 7,86" style="fill:var(--violet-fonce)"/><rect width="14" height="10" rx="3" fill="#ff9fc2"/></g></g>
   </g>
   <!-- étoiles -->
   <g class="etoiles" fill="#fff"><path d="M60 150 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4z"/><path d="M470 200 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M200 40 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/></g>
@@ -64,9 +64,9 @@ function illustration_bandeau(): string {
 <svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <g class="soleil"><circle cx="190" cy="40" r="26" fill="#ffe08a"/><?= kawaii(190, 42, .7) ?></g>
   <g class="nuage n1" fill="#fff"><ellipse cx="60" cy="34" rx="32" ry="14"/><ellipse cx="42" cy="28" rx="16" ry="12"/><ellipse cx="80" cy="27" rx="18" ry="13"/></g>
-  <rect x="62" y="70" width="100" height="70" rx="12" fill="#fff"/><rect x="62" y="70" width="14" height="70" rx="6" fill="#7c6cf0"/>
+  <rect x="62" y="70" width="100" height="70" rx="12" fill="#fff"/><rect x="62" y="70" width="14" height="70" rx="6" style="fill:var(--violet)"/>
   <g stroke="#e6e0f8" stroke-width="3" stroke-linecap="round"><line x1="88" y1="92" x2="148" y2="92"/><line x1="88" y1="106" x2="140" y2="106"/><line x1="88" y1="120" x2="132" y2="120"/></g>
-  <g class="crayon"><g transform="translate(150 96) rotate(40)"><rect width="12" height="60" rx="3" fill="#ffd36e"/><polygon points="0,60 12,60 6,74" fill="#ffe9c9"/><polygon points="3,67 9,67 6,74" fill="#5b4bc4"/><rect width="12" height="9" rx="3" fill="#ff9fc2"/></g></g>
+  <g class="crayon"><g transform="translate(150 96) rotate(40)"><rect width="12" height="60" rx="3" fill="#ffd36e"/><polygon points="0,60 12,60 6,74" fill="#ffe9c9"/><polygon points="3,67 9,67 6,74" style="fill:var(--violet-fonce)"/><rect width="12" height="9" rx="3" fill="#ff9fc2"/></g></g>
   <g class="etoiles" fill="#fff"><path d="M22 90 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/><path d="M215 100 l3 6 6 3 -6 3 -3 6 -3 -6 -6 -3 6 -3z"/></g>
 </svg>
 <?php return ob_get_clean();
@@ -74,7 +74,8 @@ function illustration_bandeau(): string {
 
 // Sons générés par le navigateur (Web Audio) : aucun fichier audio, bouton 🔊/🔇 pour couper
 function script_sons(): string {
-    ob_start(); ?>
+    ob_start(); echo theme_picker(); ?>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); }); }</script>
 <button type="button" id="son-toggle" class="son-toggle" aria-label="Activer ou couper le son" title="Son">🔊</button>
 <script>
 (function () {
@@ -142,6 +143,55 @@ function script_sons(): string {
     else if (bienvenue && document.querySelector('.hero')) { jouer('bienvenue'); }
   });
   maj();
+})();
+</script>
+<?php return ob_get_clean();
+}
+
+// Applique le thème choisi AVANT l'affichage (évite le clignotement) : à mettre dans <head>
+function theme_init(): string {
+    // + balises « application installable » (PWA) : manifeste, icônes, couleur de la barre du téléphone
+    return '<meta name="theme-color" content="#7c6cf0">' . "\n  "
+         . '<link rel="manifest" href="/manifest.json">' . "\n  "
+         . '<link rel="icon" type="image/png" href="/icons/icon-192.png">' . "\n  "
+         . '<link rel="apple-touch-icon" href="/icons/icon-192.png">' . "\n  "
+         . '<meta name="apple-mobile-web-app-capable" content="yes">' . "\n  "
+         . '<meta name="mobile-web-app-capable" content="yes">' . "\n  "
+         . '<meta name="apple-mobile-web-app-title" content="École">' . "\n  "
+         . "<script>try{var t=localStorage.getItem('theme');if(t&&t!=='violet')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>";
+}
+
+// Bouton 🎨 + palette de couleurs (6 thèmes mignons), choix mémorisé dans le navigateur
+function theme_picker(): string {
+    $themes = ['violet' => ['Violet', '#7c6cf0'], 'rose' => ['Rose', '#ec6aa5'], 'bleu' => ['Bleu', '#3d9be9'],
+               'jaune' => ['Jaune', '#f2a900'], 'menthe' => ['Menthe', '#2fb27c'], 'peche' => ['Pêche', '#ff8057']];
+    ob_start(); ?>
+<div class="theme-wrap" id="theme-wrap">
+  <div class="theme-pop" id="theme-pop" role="dialog" aria-label="Choisir les couleurs">
+    <strong>🎨 Choisis tes couleurs</strong>
+    <div class="choix">
+      <?php foreach ($themes as $cle => [$nom, $col]): ?>
+        <button type="button" class="pastille" data-theme="<?= $cle ?>"><i style="background:<?= $col ?>"></i><?= $nom ?></button>
+      <?php endforeach; ?>
+    </div>
+  </div>
+  <button type="button" class="theme-btn" id="theme-btn" aria-label="Changer les couleurs" title="Couleurs">🎨</button>
+</div>
+<script>
+(function () {
+  var pop = document.getElementById('theme-pop'), btn = document.getElementById('theme-btn');
+  function courant() { return document.documentElement.getAttribute('data-theme') || 'violet'; }
+  function marquer() { pop.querySelectorAll('.pastille').forEach(function (p) { p.classList.toggle('actuel', p.dataset.theme === courant()); }); }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); pop.classList.toggle('ouvert'); marquer(); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('#theme-wrap')) pop.classList.remove('ouvert'); });
+  pop.querySelectorAll('.pastille').forEach(function (p) {
+    p.addEventListener('click', function () {
+      var t = p.dataset.theme;
+      if (t === 'violet') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem('theme', t); } catch (e) {}
+      marquer();
+    });
+  });
 })();
 </script>
 <?php return ob_get_clean();
