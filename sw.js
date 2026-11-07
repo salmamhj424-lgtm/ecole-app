@@ -1,11 +1,9 @@
 // Service worker de l'application « École » : ne met en cache que les fichiers statiques.
 // Les pages PHP (connexion, notes, paiements…) ne passent JAMAIS par le cache.
-const CACHE_NAME = "ecole-static-v2";
+const CACHE_NAME = "ecole-static-v3";
 const STATIC_FILES = [
   "/style.css",
   "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {

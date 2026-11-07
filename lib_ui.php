@@ -153,8 +153,8 @@ function theme_init(): string {
     // + balises « application installable » (PWA) : manifeste, icônes, couleur de la barre du téléphone
     return '<meta name="theme-color" content="#7c6cf0">' . "\n  "
          . '<link rel="manifest" href="/manifest.json">' . "\n  "
-         . '<link rel="icon" type="image/png" href="/icons/icon-192.png">' . "\n  "
-         . '<link rel="apple-touch-icon" href="/icons/icon-192.png">' . "\n  "
+         . '<link rel="icon" type="image/png" href="/icon.php?s=192">' . "\n  "
+         . '<link rel="apple-touch-icon" href="/icon.php?s=192">' . "\n  "
          . '<meta name="apple-mobile-web-app-capable" content="yes">' . "\n  "
          . '<meta name="mobile-web-app-capable" content="yes">' . "\n  "
          . '<meta name="apple-mobile-web-app-title" content="École">' . "\n  "

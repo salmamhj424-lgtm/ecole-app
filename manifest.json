@@ -12,19 +12,19 @@
   "theme_color": "#7c6cf0",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icon.php?s=192",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icon.php?s=512",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icon.php?s=512",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
