@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/config.php';
 require __DIR__ . '/layout.php';
+require_once __DIR__ . '/lib_mail.php';
 require __DIR__ . '/lib_ecoles.php';
 $u = require_login(['admin']);
 $pdo = db();
@@ -40,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ins = $pdo->prepare("INSERT INTO users (nom, prenom, email, mot_de_passe_hash, role) VALUES (?,?,?,?, 'enseignant') RETURNING id");
             $ins->execute([$neNom, $nePrenom, $neEmail, password_hash($neMdp, PASSWORD_BCRYPT)]);
             $ens = (int)$ins->fetchColumn();
-            $profCree = " Compte enseignant créé ($neEmail) et nommé titulaire.";
+            $mailOk = mail_identifiants_compte($neEmail, $nePrenom ?: $neNom, 'enseignant', $u['ecole'] ?? '', $neMdp);
+            $profCree = " Compte enseignant créé ($neEmail) et nommé titulaire." . ($mailOk ? ' 📧 Identifiants envoyés par email.' : '');
         }
         if ($id) {
             // on ne peut pas descendre sous le nombre d'élèves déjà inscrits

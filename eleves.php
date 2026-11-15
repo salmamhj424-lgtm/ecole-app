@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/config.php';
 require __DIR__ . '/layout.php';
+require_once __DIR__ . '/lib_mail.php';
 require __DIR__ . '/lib_ecoles.php';
 $u = require_login(['admin']);
 $pdo = db();
@@ -89,7 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ins = $pdo->prepare("INSERT INTO users (nom, prenom, email, mot_de_passe_hash, role) VALUES (?,?,?,?, 'parent') RETURNING id");
             $ins->execute([$npNom, $npPrenom, $npEmail, password_hash($npMdp, PASSWORD_BCRYPT)]);
             $parent = (int)$ins->fetchColumn();
-            $parentCree = " Compte parent créé ($npEmail) et rattaché à l'élève.";
+            $mailOk = mail_identifiants_compte($npEmail, $npPrenom ?: $npNom, 'parent', $u['ecole'] ?? '', $npMdp);
+            $parentCree = " Compte parent créé ($npEmail) et rattaché à l'élève." . ($mailOk ? ' 📧 Identifiants envoyés par email.' : '');
         }
         if ($id) {
             $pdo->prepare('UPDATE eleves SET nom=?, prenom=?, date_naissance=?, classe_id=?, parent_id=? WHERE id=? AND deleted_at IS NULL')

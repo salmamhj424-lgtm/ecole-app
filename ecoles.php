@@ -3,6 +3,7 @@
 require __DIR__ . '/config.php';
 require __DIR__ . '/layout.php';
 require __DIR__ . '/lib_ecoles.php';
+require __DIR__ . '/lib_mail.php';
 $u = require_login(['superadmin']);
 $pdo = db();
 
@@ -24,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Cet email est déjà utilisé.', 'err');
         } else {
             create_school($pdo, $nom, $aNom, $aPren, $aEmail, $aMdp);
-            flash("École « $nom » créée. Son administrateur peut se connecter avec $aEmail.");
+            $envoye = mail_identifiants_ecole($aEmail, $aPren !== '' ? $aPren : $aNom, $nom, $aMdp);
+            flash("École « $nom » créée. " . ($envoye ? "📧 Identifiants envoyés à $aEmail." : "Son administrateur peut se connecter avec $aEmail (email non envoyé : service d'email non configuré ou en erreur)."), $envoye ? 'ok' : 'err');
         }
         redirect('ecoles.php');
     }
@@ -49,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($adm) {
                 $pdo->prepare("UPDATE $sch.users SET mot_de_passe_hash = ? WHERE id = ?")
                     ->execute([password_hash($mdp, PASSWORD_BCRYPT), $adm['id']]);
-                flash("Mot de passe de {$adm['email']} modifié.");
+                $envoye = mail_identifiants_ecole($adm['email'], 'Directeur', $ec['nom'], $mdp);
+                flash("Mot de passe de {$adm['email']} modifié." . ($envoye ? ' 📧 Envoyé par email.' : ''));
             } else {
                 flash('Aucun administrateur trouvé pour cette école.', 'err');
             }

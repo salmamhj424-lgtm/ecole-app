@@ -2,6 +2,7 @@
 // Gestion des comptes : enseignants, parents, comptables (réservé à l'admin)
 require __DIR__ . '/config.php';
 require __DIR__ . '/layout.php';
+require_once __DIR__ . '/lib_mail.php';
 $u = require_login(['admin']);
 $pdo = db();
 
@@ -43,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $pdo->prepare('INSERT INTO users (nom, prenom, email, mot_de_passe_hash, role) VALUES (?,?,?,?,?)')
                     ->execute([$nom, $prenom, $email, password_hash($mdp, PASSWORD_BCRYPT), $role]);
-                flash('Compte créé.');
+                $mailOk = mail_identifiants_compte($email, $prenom ?: $nom, ROLE_LABELS[$role] ?? $role, $u['ecole'] ?? '', $mdp);
+                flash('Compte créé.' . ($mailOk ? ' 📧 Identifiants envoyés par email.' : ''));
             }
         } catch (PDOException $e) {
             if ($e->getCode() === '23505') {
